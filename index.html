@@ -1,0 +1,1471 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>橙视影视制作技能考核评估系统</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#fff7ed',
+              100: '#ffedd5',
+              400: '#fb923c',
+              500: '#f97316',
+              600: '#ea580c',
+              700: '#c2410c'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @media print {
+      .no-print { display: none !important; }
+      .print-only { display: block !important; }
+      body { background: white !important; color: black !important; }
+      .card-box { box-shadow: none !important; border: 1px solid #ccc !important; background: white !important; color: black !important; }
+      textarea, input { border-bottom: 1px solid #999 !important; }
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-brand-500 selection:text-white">
+
+  <!-- 顶部导航栏 -->
+  <header class="bg-slate-900/90 backdrop-blur border-b border-slate-800 sticky top-0 z-50 no-print">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-amber-500 flex items-center justify-center shadow-lg shadow-brand-500/20 font-black text-xl text-white">
+          橙
+        </div>
+        <div>
+          <h1 class="font-bold text-base sm:text-lg tracking-wide text-white flex items-center gap-2">
+            橙视影视制作技能考核评估系统
+            <span class="text-[10px] px-2 py-0.5 rounded bg-brand-500/20 text-brand-400 border border-brand-500/30">专人评审版</span>
+          </h1>
+          <p class="text-xs text-slate-400">CHENGSHI CINEMA TALENT QUALIFICATION SYSTEM</p>
+        </div>
+      </div>
+      
+      <!-- 模式切换与操作 -->
+      <div class="flex items-center space-x-3">
+        <!-- 身份视角切换 -->
+        <div class="bg-slate-800 p-1 rounded-xl border border-slate-700 flex items-center">
+          <button onclick="setUserMode('candidate')" id="btn-mode-candidate" class="px-3 py-1.5 rounded-lg text-xs font-medium transition text-white bg-brand-600 shadow">
+            <i class="fa-solid fa-pen-to-square mr-1"></i> 考生作答模式
+          </button>
+          <button onclick="setUserMode('examiner')" id="btn-mode-examiner" class="px-3 py-1.5 rounded-lg text-xs font-medium transition text-slate-400 hover:text-slate-200">
+            <i class="fa-solid fa-user-check mr-1"></i> 考官评审模式
+          </button>
+        </div>
+
+        <button onclick="switchView('records')" class="px-3 py-1.5 rounded-xl text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition flex items-center gap-1.5">
+          <i class="fa-solid fa-folder-closed text-brand-400"></i> 档案库 (<span id="recordCountBadge">0</span>)
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主内容区 -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- 视图 1：主考核作答/打分界面 -->
+    <div id="evaluationView" class="space-y-6">
+
+      <!-- 模式状态横幅 -->
+      <div id="modeBanner" class="p-3.5 rounded-2xl bg-slate-900 border border-brand-500/30 flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-brand-500 animate-pulse"></span>
+          <span class="text-slate-300">当前视角：</span>
+          <strong id="modeNameText" class="text-brand-400">【考生作答模式】请认真完成以下四大部分考核题目并提交</strong>
+        </div>
+        <div class="text-slate-400" id="modeHintText">
+          提示：完成作答后可切换至“考官评审模式”由主考专人依据专业评估量规核算给分。
+        </div>
+      </div>
+      
+      <!-- 候选人与考核信息卡片 -->
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">候选人姓名 / 编号 <span class="text-rose-500">*</span></label>
+            <input type="text" id="candidateName" value="张明" class="w-full bg-slate-950 border border-slate-700 rounded-xl py-2 px-3 text-sm focus:outline-none focus:border-brand-500 text-white placeholder-slate-600" placeholder="请输入考生姓名">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">应聘 / 考核职级</label>
+            <select id="targetLevel" class="w-full bg-slate-950 border border-slate-700 rounded-xl py-2 px-3 text-sm focus:outline-none focus:border-brand-500 text-white">
+              <option value="资深/骨干">资深主创 / 骨干制作人</option>
+              <option value="中级制作" selected>中级制作人 / 独立执行</option>
+              <option value="初级/助理">初级制作 / 助理 / 实习</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">考核日期</label>
+            <input type="date" id="evalDate" class="w-full bg-slate-950 border border-slate-700 rounded-xl py-2 px-3 text-sm focus:outline-none focus:border-brand-500 text-white">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">专人主考官签名</label>
+            <input type="text" id="examinerName" value="橙视制作总监" class="w-full bg-slate-950 border border-slate-700 rounded-xl py-2 px-3 text-sm focus:outline-none focus:border-brand-500 text-white placeholder-slate-600" placeholder="评审考官姓名">
+          </div>
+        </div>
+
+        <!-- 岗位切换 Tab -->
+        <div class="mt-5 pt-4 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3">
+          <div class="flex flex-wrap gap-2" id="roleTabs">
+            <button onclick="changeRole('editor')" id="tab-editor" class="role-tab px-4 py-2 rounded-xl text-sm font-semibold transition flex items-center gap-2 bg-brand-600 text-white shadow-lg shadow-brand-600/30">
+              <i class="fa-solid fa-film"></i> 后期剪辑题库
+            </button>
+            <button onclick="changeRole('vfx')" id="tab-vfx" class="role-tab px-4 py-2 rounded-xl text-sm font-medium transition flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-300">
+              <i class="fa-solid fa-wand-magic-sparkles"></i> 后期特效题库
+            </button>
+            <button onclick="changeRole('camera')" id="tab-camera" class="role-tab px-4 py-2 rounded-xl text-sm font-medium transition flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-300">
+              <i class="fa-solid fa-camera"></i> 拍摄摄影师题库
+            </button>
+          </div>
+          <div class="text-xs text-slate-400 bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800">
+            题型结构：<span class="text-brand-400 font-bold">10单选(20分) + 5简答(30分) + 2实操(30分) + 2审美(20分) = 100分</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 题目容器 -->
+      <div id="examContainer" class="space-y-6">
+        <!-- 由 JS 动态渲染各部分题目 -->
+      </div>
+
+      <!-- 考官终审与操作栏 -->
+      <div id="examinerReviewSection" class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
+          <h3 class="font-bold text-base text-white flex items-center gap-2">
+            <i class="fa-solid fa-clipboard-check text-brand-500"></i> 橙视考官专人综合评审与定级
+          </h3>
+          <div class="text-xs text-slate-400">
+            模式提示：可在右上角切换【考官评审模式】查看各题评分量规细则并逐项打分。
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+          <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 flex items-center justify-between">
+            <div>
+              <span class="text-xs text-slate-400 block">考官核定总分 (满分100)</span>
+              <span id="displayTotalScore" class="text-3xl font-black text-brand-400">0.0</span>
+              <span class="text-xs text-slate-500 ml-1">/ 100 分</span>
+            </div>
+            <button onclick="calculateScoreFromInputs()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs rounded-lg border border-slate-700">
+              <i class="fa-solid fa-calculator mr-1"></i> 核算当前打分
+            </button>
+          </div>
+
+          <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
+            <label class="block text-xs text-slate-400 mb-1">橙视最终评级结论</label>
+            <select id="finalGradeSelect" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-1.5 text-xs text-brand-300 font-bold focus:outline-none">
+              <option value="卓越 / 资深主创 (88-100分)">卓越 / 资深主创 (88-100分)</option>
+              <option value="胜任 / 核心骨干 (75-87分)" selected>胜任 / 核心骨干 (75-87分)</option>
+              <option value="合格 / 助理制作 (60-74分)">合格 / 助理制作 (60-74分)</option>
+              <option value="不合格 / 不予录用 (<60分)">不合格 / 不予录用 (&lt;60分)</option>
+            </select>
+          </div>
+
+          <div class="flex gap-2">
+            <button onclick="saveCurrentEvaluation()" class="flex-1 py-3 px-4 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold shadow-lg shadow-brand-600/30 transition flex items-center justify-center gap-2">
+              <i class="fa-solid fa-floppy-disk"></i> 保存并归档考核表
+            </button>
+            <button onclick="window.print()" class="px-4 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs transition flex items-center gap-1.5">
+              <i class="fa-solid fa-print"></i> 打印报告
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">主考官综合评价与团队录用建议</label>
+          <textarea id="examinerOverallComment" rows="3" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-brand-500" placeholder="请专人考官详细填写候选人的技术亮点、审美直觉、操作熟练度以及录用建议..."></textarea>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 视图 2：历史评估档案管理 -->
+    <div id="recordsView" class="hidden space-y-5">
+      <div class="flex flex-wrap items-center justify-between bg-slate-900 border border-slate-800 rounded-2xl p-4 gap-3">
+        <div>
+          <h2 class="text-base font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-folder-open text-brand-400"></i> 橙视考核档案库
+          </h2>
+          <p class="text-xs text-slate-400">查看、复核或导出过往专人评分的候选人记录</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="exportAllRecordsJSON()" class="px-3 py-1.5 rounded-lg text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center gap-1.5">
+            <i class="fa-solid fa-file-export"></i> 导出 JSON
+          </button>
+          <button onclick="clearAllRecords()" class="px-3 py-1.5 rounded-lg text-xs bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 border border-rose-800/40 flex items-center gap-1.5">
+            <i class="fa-solid fa-trash-can"></i> 清空档案
+          </button>
+          <button onclick="switchView('evaluation')" class="px-4 py-1.5 rounded-xl text-xs bg-brand-600 hover:bg-brand-500 text-white font-semibold">
+            返回考核台
+          </button>
+        </div>
+      </div>
+
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-950 text-slate-400 uppercase tracking-wider border-b border-slate-800">
+              <tr>
+                <th class="py-3.5 px-4">考核日期</th>
+                <th class="py-3.5 px-4">候选人</th>
+                <th class="py-3.5 px-4">考核岗位</th>
+                <th class="py-3.5 px-4">考官核定得分</th>
+                <th class="py-3.5 px-4">定级结论</th>
+                <th class="py-3.5 px-4">评审考官</th>
+                <th class="py-3.5 px-4 text-right">操作</th>
+              </tr>
+            </thead>
+            <tbody id="recordsTableBody" class="divide-y divide-slate-800 text-slate-200">
+              <!-- 动态加载记录 -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- 提示条 (Toast) -->
+  <div id="toast" class="fixed bottom-6 right-6 bg-brand-600 text-white px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 text-xs font-medium transform transition-all duration-300 translate-y-20 opacity-0 pointer-events-none z-50">
+    <i class="fa-solid fa-circle-check text-sm"></i>
+    <span id="toastMsg">操作成功</span>
+  </div>
+
+  <!-- 题库数据与系统控制逻辑 -->
+  <script>
+    // ==========================================
+    // 1. 橙视题库全量结构（10单选 + 5简答 + 2实操 + 2审美）
+    // ==========================================
+    const CHENGSHI_EXAM_DB = {
+      // -------------------------------------------------------------
+      // 岗位 1：后期剪辑师 (Video Editor)
+      // -------------------------------------------------------------
+      editor: {
+        roleName: "后期剪辑师 (Video Editor)",
+        multipleChoice: [
+          {
+            id: "ed_mc_1",
+            title: "1. 视听剪辑语法中，画面先切到下一个镜头，而上一镜头的声音延续数秒才消失的手法被称为：",
+            options: ["A. J-Cut (声音前延)", "B. L-Cut (声音后延)", "C. Jump Cut (跳切)", "D. Match Cut (匹配剪辑)"],
+            answer: "B",
+            explain: "L-Cut 表示画面先行切换而上一镜头音频继续延续；J-Cut 表示声音先入而画面后切。"
+          },
+          {
+            id: "ed_mc_2",
+            title: "2. 在 4K 10-bit Log 素材高负荷剪辑时，最规范且画质/流畅度平衡最佳的剪辑代理（Proxy）编码是：",
+            options: ["A. H.264 High Profile", "B. Apple ProRes 422 Proxy / Avid DNxHR LB", "C. Uncompressed AVI", "D. Animation 编码"],
+            answer: "B",
+            explain: "ProRes Proxy 或 DNxHR 为帧内编码（I-frame only），极大降低 CPU/GPU 实时解码压力，避免长 GOP 丢帧卡顿。"
+          },
+          {
+            id: "ed_mc_3",
+            title: "3. 在处理正反打人物对话镜头时，如果镜头越过了两人视线相连的假想线，会发生：",
+            options: ["A. 摩尔纹穿帮", "B. 跳轴（违背轴线原则导致空间视线混乱）", "C. 闪白转场", "D. 声画不同步"],
+            answer: "B",
+            explain: "越轴会导致两人在画面中望向同一方向，破坏观众建立的空间心理方位感。"
+          },
+          {
+            id: "ed_mc_4",
+            title: "4. 国内外主流网络流媒体平台（如B站、YouTube等）通常推荐的标准音频响度范围是：",
+            options: ["A. 0 到 +3 LUFS", "B. -6 到 -8 LUFS", "C. -14 到 -16 LUFS", "D. -30 到 -35 LUFS"],
+            answer: "C",
+            explain: "网络流媒体平台普遍在 -14 ~ -16 LUFS；广播电视广电标准则通常严格限制在 -24 LUFS。"
+          },
+          {
+            id: "ed_mc_5",
+            title: "5. 在剪辑动作戏（如出拳、摔门、拔枪）时，为了让动作看起来更连贯流畅，最常用的切点原则是：",
+            options: ["A. 动作开始前切", "B. 动作进行中（Cutting on Action）顺接切", "C. 动作完全结束后静止切", "D. 仅在台词结束点切"],
+            answer: "B",
+            explain: "在动作动势最强烈、观众视线高度集中的瞬间切入下一景别，能最大限度掩盖剪切痕迹。"
+          },
+          {
+            id: "ed_mc_6",
+            title: "6. 关于色度抽样 4:2:0 与 4:2:2 的区别，以下说法正确的是：",
+            options: ["A. 4:2:0 比 4:2:2 保留了更多的水平色度细节", "B. 4:2:2 在后期抠像与二级调色时边缘杂色和抗噪表现明显优于 4:2:0", "C. 4:2:0 适合广播级母版归档交付", "D. 两者在后期调色宽容度上完全没有区别"],
+            answer: "B",
+            explain: "4:2:2 比 4:2:0 保留了一倍的色度分辨率，极大提升抠像边缘与细微色彩分离质量。"
+          },
+          {
+            id: "ed_mc_7",
+            title: "7. 在调色波形图（Waveform）中，IRE 数值通常代表画面的什么物理指标：",
+            options: ["A. 色相角度", "B. 亮度/电平反差 (0为纯黑, 100为纯白)", "C. 音频分贝大小", "D. 帧率"],
+            answer: "B",
+            explain: "IRE (Institute of Radio Engineers) 是视频亮度和电平的标准衡量单位。"
+          },
+          {
+            id: "ed_mc_8",
+            title: "8. 面对 QuickTime Player 播放导出视频发灰偏色（Mac Gamma Shift 现象），通常是因为色彩标签未正确设置为：",
+            options: ["A. Rec.709 (Scene) / Gamma 2.4 与 1-1-1 标签不匹配", "B. 音频采样率设置过低", "C. 分辨率非整数倍", "D. 码率设置过高"],
+            answer: "A",
+            explain: "macOS ColorSync 对 Rec.709 解释为 Gamma 1.96，而标准设备为 Gamma 2.4，需正确配置 NCLC 1-1-1 标签补偿。"
+          },
+          {
+            id: "ed_mc_9",
+            title: "9. 项目即将结束需进行工程归档，为了精简硬盘体积并防止素材丢失，剪辑软件通常使用哪个功能：",
+            options: ["A. 批量重命名", "B. 项目打包精简与整合 (Project Manager / Consolidate and Transcode)", "C. 降低预览分辨率", "D. 隐藏非活跃轨道"],
+            answer: "B",
+            explain: "项目管理器 Consolidate 可以仅提取时间线实际用到的素材片段并保留手柄（Handles）进行打包归档。"
+          },
+          {
+            id: "ed_mc_10",
+            title: "10. 在 25fps 帧率工程中导入了 100fps 拍摄的升格素材，若要在时间线上以 1:1 物理慢动作流畅回放，最佳操作是：",
+            options: ["A. 直接拖入时间线并加速 400%", "B. 在素材库解释素材帧速率为 25fps (Interpret Footage)", "C. 导出为 GIF", "D. 强制删除冗余帧"],
+            answer: "B",
+            explain: "解释帧率为工程基准 25fps 可让摄影机记录的每一帧逐一映射，实现精准 4 倍平滑慢动作。"
+          }
+        ],
+        shortAnswer: [
+          {
+            id: "ed_sa_1",
+            title: "1. 商业宣传片/广告中的‘呼吸感’与‘机械卡点’",
+            question: "商业片剪辑中如何避免低级的‘机械按鼓点卡拍’？请阐述你如何通过镜头动势、情绪张弛和音频分层构建有高级呼吸感的剪辑节奏。",
+            rubric: {
+              dimensions: "【考核维度】：视听心理感知能力、动势与音乐节奏反差控制、声场多维层次构建。",
+              levels: [
+                { score: "5 - 6分 (卓越)", desc: "跳脱出网格化卡拍思维，系统阐述画面动势能量（起幅/落幅/加速）与音乐节拍的错落呼应，能综合运用环境声场与音效预埋构建情绪张力曲线。" },
+                { score: "3 - 4分 (合格)", desc: "能意识到机械卡点的单调性，提出利用音效辅助或适当打破拍点，但对视听呼吸感的理论支撑与多层次声画构建阐述偏常规。" },
+                { score: "0 - 2分 (欠缺)", desc: "停留在'找好听的BGM'或'凭感觉剪'的感性阶段，无法说明如何通过具体视听手段营造节奏起伏。" }
+              ]
+            }
+          },
+          {
+            id: "ed_sa_2",
+            title: "2. 跨机位 Log 素材色彩空间统一与管理流程",
+            question: "一个项目混用了 Sony S-Log3、ARRI LogC3 和 Canon C-Log2 三种机位素材，请详述你在剪辑/调色软件中如何规范进行色彩空间管理，保证监视器画面准确定光？",
+            rubric: {
+              dimensions: "【考核维度】：色彩科学认知深度、全流程动态范围无损保护意识、跨设备定光管线搭建能力。",
+              levels: [
+                { score: "5 - 6分 (卓越)", desc: "清晰阐释基于广色域色彩管理管线或色彩空间精确转换逻辑，兼顾输入/工作/输出色彩空间匹配，具备防止高光与暗部信息被截断的严谨意识。" },
+                { score: "3 - 4分 (合格)", desc: "掌握常规官方转换流程或能够通过查找表还原画面，能做到画面反差基本统一，但对底层色彩映射原理及宽容度保护考量不足。" },
+                { score: "0 - 2分 (欠缺)", desc: "色彩空间概念混淆，方案存在素材严重断层、偏色或动态范围丢失风险。" }
+              ]
+            }
+          },
+          {
+            id: "ed_sa_3",
+            title: "3. 应对客户频繁修改与多版本迭代的工程规范",
+            question: "在面对大型商业项目客户频繁修改反馈时，你如何制定工程版本命名规范、时间线分段以及历史素材回溯策略，避免工程崩溃或版本混乱？",
+            rubric: {
+              dimensions: "【考核维度】：工程资产架构抗风险能力、版本分支管理逻辑、团队协同与历史追溯效率。",
+              levels: [
+                { score: "5 - 6分 (卓越)", desc: "建立清晰闭环的命名规范、时间线分支封存策略与资产依赖架构，具备严密的主管级防丢容灾与快速回退机制。" },
+                { score: "3 - 4分 (合格)", desc: "具备常规版本保存与复制时间线备份习惯，能够应对一般修改，但在超大型多资产联动与多人协同交接时规范性略显不足。" },
+                { score: "0 - 2分 (欠缺)", desc: "版本管理随意，单工程反复覆盖保存，缺乏资产路径规划，极易引发版本混淆或素材丢失事故。" }
+              ]
+            }
+          },
+          {
+            id: "ed_sa_4",
+            title: "4. 演员表演节奏偏慢或断裂时的视听挽救手法",
+            question: "当实拍素材中演员台词停顿过长、情绪不连贯，且没有多余备用机位时，你可以运用哪些剪辑技巧在成片中重新建立紧凑自然的戏剧节奏？",
+            rubric: {
+              dimensions: "【考核维度】：戏剧张力重构思维、单机位解题技巧丰富度、无痕剪接与视线掩护能力。",
+              levels: [
+                { score: "5 - 6分 (卓越)", desc: "能综合运用动势掩护微切、景别重构、声画错位剪切及环境反应空间借用等多维组合手法，在保证情绪连贯的前提下无痕重塑戏剧节奏。" },
+                { score: "3 - 4分 (合格)", desc: "能提出 1-2 种常规剪切或垫底手段，但手法较为单一，在视觉流畅度或情绪过渡上可能留有生硬痕迹。" },
+                { score: "0 - 2分 (欠缺)", desc: "缺乏剪辑视听救场手段，直接产生跳帧穿帮或无法解决节奏拖沓问题。" }
+              ]
+            }
+          },
+          {
+            id: "ed_sa_5",
+            title: "5. 声音设计在剪辑中的全流程分轨规范",
+            question: "请写出你在时间线上的标准音频轨道分层逻辑，并简述人声与背景音乐冲突时的频段避让与动态处理策略。",
+            rubric: {
+              dimensions: "【考核维度】：声音空间维度划分规范度、声学频段冲突调控能力、音频响度与听感平衡意识。",
+              levels: [
+                { score: "5 - 6分 (卓越)", desc: "分轨逻辑严谨清晰（对白/环境/动效/音乐独立归类），深刻理解人声核心频段避让、动态范围压制与自动闪避响应的精细调控。" },
+                { score: "3 - 4分 (合格)", desc: "分轨清晰合理，掌握基础电平包络控制与简单的避让手段，但在精细频段雕刻与声场空间融合上稍显经验化。" },
+                { score: "0 - 2分 (欠缺)", desc: "无分轨意识，多音源同轨堆叠，声音互相打架、忽大忽小，缺乏基本混音规范。" }
+              ]
+            }
+          }
+        ],
+        practical: [
+          {
+            id: "ed_pr_1",
+            title: "1. 商业品牌宣传片 60 秒高潮段落快剪实操",
+            task: "【考核任务】：使用考核提供的 4K 广告素材包（含人物采访、产品微距、空镜），在 90 分钟内完成一段 45-60 秒的成片。要求包含清晰的逻辑结构、起承转合、高级声效铺底与基础调色还原。\n【提交要求】：请将剪辑成片与工程打包上传至网盘，并在此粘贴分享链接与提取码。",
+            rubric: {
+              dimensions: "【实操评审维度】：叙事逻辑张力、声画动势连贯性、声音设计饱满度、色彩通透度与工程整洁度。",
+              levels: [
+                { score: "13 - 15分 (卓越)", desc: "成片结构极具商业质感，情绪起承转合丝滑流畅，声效细节丰富且定位精准，工程轨道井井有条无冗余。" },
+                { score: "9 - 12分 (合格)", desc: "叙事通顺完整，节奏基本合格，声画无明显瑕疵，但视觉高潮点缺乏爆发力，调色或声效细节中规中矩。" },
+                { score: "0 - 8分 (欠缺)", desc: "逻辑断裂，剪辑点生硬，音画不同步或偏色严重，超时未完成。" }
+              ]
+            }
+          },
+          {
+            id: "ed_pr_2",
+            title: "2. 复杂多机位戏剧冲突对话戏精剪实操",
+            task: "【考核任务】：提供一段 3 机位、长达 8 分钟的人物激烈争吵戏素材（含跳轴陷阱与表演节奏拖沓问题）。在 60 分钟内精剪为 2 分钟紧凑对话片段。\n【提交要求】：粘贴成片视频与工程文件链接，简要附上 100 字剪辑思路说明。",
+            rubric: {
+              dimensions: "【实操评审维度】：轴线原则把控与跳轴化解、人物视线引导、戏剧冲突交锋张力、对白切点自然度。",
+              levels: [
+                { score: "13 - 15分 (卓越)", desc: "巧妙化解跳轴难题，视线引导严密，剪辑切点完美放大演员情绪交锋，节奏张弛有度，无任何视听顿挫。" },
+                { score: "9 - 12分 (合格)", desc: "基本理清对话逻辑与角色反应，规避了主要跳轴问题，但戏剧节奏的压迫感与情绪铺垫稍弱。" },
+                { score: "0 - 8分 (欠缺)", desc: "出现严重视线跳轴错误，剪辑点破坏演员表演连贯性，成片混乱。" }
+              ]
+            }
+          }
+        ],
+        aesthetic: [
+          {
+            id: "ed_ae_1",
+            title: "1. 寻找并拆解一段‘顶级视听节奏与音画转场’的商业影视案例",
+            task: "【审美命题】：请在主流视频平台（如 Bilibili / Vimeo / YouTube 等）中，寻找一段你认为在‘音画匹配、动势衔接、节奏呼吸感’上达到行业顶级水准的影视/广告片段。\n【提交要求】：在此粘贴该视频链接与精确时间轴区间（如 01:20 - 02:30），并写出不少于 150 字的专业拆解（分析其转场技巧、音乐节拍与画面动势如何呼应）。",
+            rubric: {
+              dimensions: "【审美评审维度】：行业标杆样片鉴赏眼界、视听转场向量分析深度、声画隐喻与节奏感知力。",
+              levels: [
+                { score: "9 - 10分 (顶级)", desc: "选片极具行业前沿代表性，能精准拆解镜头动势向量、声学重音与心理预期的共振机制，审美见解独到深刻。" },
+                { score: "6 - 8分 (良好)", desc: "选片符合优秀标准，能够指出转场类型与节拍对应关系，分析通顺具备一定专业度。" },
+                { score: "0 - 5分 (平庸)", desc: "选片质感平淡或分析流于表面词汇堆砌，缺乏实际视听语言拆解能力。" }
+              ]
+            }
+          },
+          {
+            id: "ed_ae_2",
+            title: "2. 寻找并拆解一段‘通过剪辑重构戏剧张力/情绪反转’的电影片段",
+            task: "【审美命题】：寻找一段通过蒙太奇、交错剪辑或视听重构，将平淡素材升华出极强情绪张力（如悬疑、悲伤、震撼或反转）的经典电影片段。\n【提交要求】：提供视频链接/片名及时间点，并阐述该段落是如何通过景别递进与剪辑切点来操纵观众心理的。",
+            rubric: {
+              dimensions: "【审美评审维度】：电影蒙太奇语法理解深度、戏剧冲突心理学洞察、景别递进与节奏操控感知。",
+              levels: [
+                { score: "9 - 10分 (顶级)", desc: "展现深厚的电影视听积累与共情敏锐度，深刻洞察剪辑如何通过时间压缩/延展操纵观众心理期待。" },
+                { score: "6 - 8分 (良好)", desc: "选片准确经典，能够分析景别变化与节奏切换对情绪的带动作用。" },
+                { score: "0 - 5分 (平庸)", desc: "选片偏离题目主旨，无法提炼剪辑手法对戏剧张力的决定性作用。" }
+              ]
+            }
+          }
+        ]
+      },
+
+      // -------------------------------------------------------------
+      // 岗位 2：后期特效师 (VFX Artist / Compositor)
+      // -------------------------------------------------------------
+      vfx: {
+        roleName: "后期特效师 (VFX Artist / Compositor)",
+        multipleChoice: [
+          {
+            id: "vfx_mc_1",
+            title: "1. 在电影工业级合成管线中，为了保证高动态范围光影在加法与乘法数学运算中符合真实物理规律，必须使用的色彩工作流是：",
+            options: ["A. Rec.709 非线性工作流", "B. 线性工作流 (Linear Workflow / ACEScg)", "C. sRGB 8-bit 工作流", "D. CMYK 印刷色彩流"],
+            answer: "B",
+            explain: "线性光（Linear Light）能量与真实物理成正比，保证虚化、高光溢出、运动模糊等合成运算符合物理光学法则。"
+          },
+          {
+            id: "vfx_mc_2",
+            title: "2. 在 Nuke / Fusion 中将带 Alpha 通道的图像与背景进行 Merge (Over) 合成前，如果前景未进行预乘（Unpremult），会导致边缘出现：",
+            options: ["A. 画面上下颠倒", "B. 边缘黑边或严重白边伪影", "C. 自动增加噪点", "D. 帧率下降"],
+            answer: "B",
+            explain: "Alpha 边缘像素颜色未与透明度正确预乘（Premultiply）会导致暗边或双重透明度计算错误。"
+          },
+          {
+            id: "vfx_mc_3",
+            title: "3. 在处理含剧烈运动模糊和半透明发丝的绿幕抠像时，行业标准流程通常将遮罩拆分为：",
+            options: ["A. 只有单一硬遮罩", "B. 核心硬遮罩 (Core Matte) 与 边缘柔和遮罩 (Edge Matte)", "C. 反相遮罩", "D. 仅靠魔棒工具"],
+            answer: "B",
+            explain: "Core Matte 保证主体实心不透明，Edge Matte 专注保留半透明细节与运动模糊，两者合并输出。"
+          },
+          {
+            id: "vfx_mc_4",
+            title: "4. 多通道 EXR 文件中，用于记录空间三维表面朝向以实现后期重新打光（Relighting）的通道是：",
+            options: ["A. Z-Depth", "B. World Normal (法线通道)", "C. Cryptomatte", "D. Motion Vector"],
+            answer: "B",
+            explain: "Normal 通道记录了物体表面各像素点的法线矢量 (XYZ -> RGB)，可用于在合成端做点光源二次着色。"
+          },
+          {
+            id: "vfx_mc_5",
+            title: "5. 在摄像机反求（Camera Tracker）解算中，通常评估解算精度的黄金指标 RMS Error（均方根重投影误差）应控制在：",
+            options: ["A. 5.0 像素以上", "B. 0.5 到 1.0 像素以内", "C. 10 到 20 像素", "D. 误差越大越好"],
+            answer: "B",
+            explain: "电影级反求要求 RMS 误差小于 1 个像素（通常在 0.5-0.8 像素内），以防止三维物体在背景上产生滑移（Sliding）。"
+          },
+          {
+            id: "vfx_mc_6",
+            title: "6. 在合成 CG 物体到实拍背景板时，消除‘塑料感’和‘贴纸感’最关键的最后一步操作是：",
+            options: ["A. 提高整体对比度", "B. 噪点颗粒匹配 (Regrain) 与 边缘光包裹 (Light Wrap)", "C. 强行锐化", "D. 直接套用复古滤镜"],
+            answer: "B",
+            explain: "实拍素材均有传感器噪点颗粒；重新给 CG 资产叠加完全同频的 Grain 并做 Light Wrap 能使其真正融入光学背景。"
+          },
+          {
+            id: "vfx_mc_7",
+            title: "7. 在流体/粒子动力学（如火焰、爆炸、烟雾）模拟中，控制烟雾翻滚旋转细节的核心物理参数通常是：",
+            options: ["A. 涡度 / 湍流 (Vorticity / Turbulence)", "B. 重力设为零", "C. 表面张力", "D. 反光率"],
+            answer: "A",
+            explain: "Vorticity（涡度）用于捕捉和保持流体微小的漩涡动态，防止烟雾迅速扩散成模糊的平滑团块。"
+          },
+          {
+            id: "vfx_mc_8",
+            title: "8. 工业级流程中用于快速高效提取任意三维材质/物体 ID 遮罩的最优解决方案是：",
+            options: ["A. 手动钢笔抠图", "B. Cryptomatte", "C. 单色红绿蓝 Clown Pass", "D. 亮度提取"],
+            answer: "B",
+            explain: "Cryptomatte 支持基于物体命名、材质的动态多层抗锯齿 ID 提取，极大减少分层渲染工作量。"
+          },
+          {
+            id: "vfx_mc_9",
+            title: "9. 镜头光学畸变（Lens Distortion）校准在特效合成中的正确顺序是：",
+            options: ["A. 直接合成不需要考虑畸变", "B. 先将实拍去畸变 (Undistort) -> 完成反求与CG合成 -> 最后整体重新加回畸变 (Redistort)", "C. 仅对最终成品加畸变", "D. 仅对三维物体去畸变"],
+            answer: "B",
+            explain: "必须在无畸变的物理直线上进行跟踪与三维解算，合成完毕后再将摄影机的真实光学畸变赋予 CG 资产。"
+          },
+          {
+            id: "vfx_mc_10",
+            title: "10. 在景深合成中，利用 Z-Depth 深度通道做后期焦外虚化（Defocus/Bokeh）时，最需要警惕并避免的问题是：",
+            options: ["A. 深度图边缘由于抗锯齿导致的半透明边缘景深边缘穿帮/割裂 (Edge Bleeding)", "B. 颜色变灰", "C. 帧率变慢", "D. 文件体积增大"],
+            answer: "A",
+            explain: "抗锯齿深度图会导致前景和背景交界处深度插值错误，产生虚假的过渡带，需结合 Deep Compositing 或硬边缘深度处理。"
+          }
+        ],
+        shortAnswer: [
+          {
+            id: "vfx_sa_1",
+            title: "1. 复杂环境下的绿幕溢色消除与边缘光重建",
+            question: "当拍摄现场绿幕反光严重洒在演员浅色衣服和半透明金色头发上时，请详述你的去溢色算法处理逻辑以及如何利用背景环境光进行边缘包裹（Light Wrap）重建？",
+            rubric: {
+              dimensions: "【考核维度】：色彩抑制算法理解深度、半透明边缘细节保护能力、环境光散射与透射物理融合度。",
+              levels: [
+                { score: "5 - 6分 (卓越)", desc: "深刻理解通道级色彩矩阵抑制逻辑，能精准保全发丝自然色调，且 Light Wrap 的衰减半径、混合模式及黑白亮度遮罩完全符合物理光学规律。" },
+                { score: "3 - 4分 (合格)", desc: "掌握常规去溢色工具与基础边缘光包裹流程，能消除明显绿边，但在高反差复杂光照下的边缘过渡与微观反差控制略显生硬。" },
+                { score: "0 - 2分 (欠缺)", desc: "采用粗暴降饱和度导致发丝脏灰，或边缘光包裹过度发白产生严重塑料感。" }
+              ]
+            }
+          },
+          {
+            id: "vfx_sa_2",
+            title: "2. CG 渲染 Passes 物理合成拆解与二次光影微调",
+            question: "请写出基于线性物理渲染的标准合成拆分重建逻辑（各光照与材质分层通道），并说明分层后如何进行针对性的光影二次微调以减少回三维重渲的成本？",
+            rubric: {
+              dimensions: "【考核维度】：线性物理渲染分解逻辑、数学运算法则严谨度、合成端高效解耦与二次创作能力。",
+              levels: [
+                { score: "5 - 6分 (卓越)", desc: "精确阐释漫反射、高光、反射、折射、次表面散射等 Passes 的加乘数学关系，能熟练在合成端定向微调物理材质属性与光源平衡，大幅提升交付效能。" },
+                { score: "3 - 4分 (合格)", desc: "掌握常见通道的合成流程，能够完成基本的分层微调，但对深层物理分解逻辑与高级通道协同应用理解稍浅。" },
+                { score: "0 - 2分 (欠缺)", desc: "通道叠加运算关系混淆，导致能量失真、噪点爆出或无法在合成端有效修正三维资产。" }
+              ]
+            }
+          },
+          {
+            id: "vfx_sa_3",
+            title: "3. 复杂特征缺失与动态遮挡镜头的摄像机反求策略",
+            question: "面对一段无明显地面特征点、且前景演员大面积遮挡画面的手持摇晃镜头，你在反求（Matchmove）时会采取哪些关键步骤来保证解算稳定且不滑移？",
+            rubric: {
+              dimensions: "【考核维度】：空间几何解算约束思维、前景动态干扰排除策略、复杂场景人工打点与容差把控能力。",
+              levels: [
+                { score: "5 - 6分 (卓越)", desc: "综合运用动态前景排除遮罩、刚体硬结构人工打点引导、焦距与光学畸变先验约束、三维点云几何校准，解算误差稳定在极小范围。" },
+                { score: "3 - 4分 (合格)", desc: "掌握手动辅助打点与基础遮罩隔离技巧，能解决一般遮挡镜头，但在长焦或剧烈晃动镜头下的解算优化手段偏少。" },
+                { score: "0 - 2分 (欠缺)", desc: "完全依赖全自动解算，遇到特征缺失或遮挡即陷入死循环或产生严重滑移。" }
+              ]
+            }
+          },
+          {
+            id: "vfx_sa_4",
+            title: "4. 真实物理阴影与接触阴影合成技巧",
+            question: "将三维模型放置于凹凸不平的真实地面时，如何合成出逼真的投影？请说明直接光硬影、环境光散射软影以及物体接触面死黑压暗的合成要点。",
+            rubric: {
+              dimensions: "【考核维度】：光学阴影衰减层次认知、环境闭塞（AO）接触面空间锚定感、地面材质吸收与色温对撞把控。",
+              levels: [
+                { score: "5 - 6分 (卓越)", desc: "对直射光半影扩散、接触面环境闭塞死黑度、地面起伏吸收率及环境冷暖对撞把控极其精准，资产空间落地感极强。" },
+                { score: "3 - 4分 (合格)", desc: "能做出方向合理、带软硬过渡的阴影，但在微观接触面的密度衰减或环境反射色偏上略显单薄。" },
+                { score: "0 - 2分 (欠缺)", desc: "阴影无层次衰减、悬浮漂移，或单纯压黑导致画面脏污。" }
+              ]
+            }
+          },
+          {
+            id: "vfx_sa_5",
+            title: "5. 大型特效合成工程的节点树/图层结构规范化",
+            question: "在团队协作中，面对一个超过 200 个节点的 Nuke 工程或数十个预合成的 AE 项目，你如何进行色彩标记、模块分组与命名规范，确保同事能无障碍接手？",
+            rubric: {
+              dimensions: "【考核维度】：工业级管线架构意识、数据流向逻辑整洁度、跨人员协作与资产交接标准化素养。",
+              levels: [
+                { score: "5 - 6分 (卓越)", desc: "数据流向清晰严谨（自上而下/模块解耦），注释与分类命名极具工业级美感，具备视效总监级工程架构统筹能力。" },
+                { score: "3 - 4分 (合格)", desc: "有基础的分组与命名习惯，主干流程可辨识，但在复杂分支合并与缓存管理上存在轻微冗余。" },
+                { score: "0 - 2分 (欠缺)", desc: "节点如蜘蛛网杂乱交叉，无任何注释与结构逻辑，严重阻碍团队协同与后期排错。" }
+              ]
+            }
+          }
+        ],
+        practical: [
+          {
+            id: "vfx_pr_1",
+            title: "1. 4K 动态镜头杂物擦除与无缝修补 (Cleanplate & Patch)",
+            task: "【考核任务】：提供一段 4K 手持运镜素材，背景包含穿帮工作人员、威亚钢丝及地面标记点。在 90 分钟内完成精准摄像机反求、静帧/动态 Cleanplate 绘制，并完美投射回原画面，噪点完全匹配。\n【提交要求】：上传合成前后对比视频与工程源文件，在此粘贴网盘链接与提取码。",
+            rubric: {
+              dimensions: "【实操评审维度】：反求跟踪稳定性、Patch修补边缘无痕度、光影时域一致性（无闪烁）、噪点颗粒匹配度。",
+              levels: [
+                { score: "13 - 15分 (卓越)", desc: "跟踪极其稳固无一丝漂移，修补区域纹理光影与原片浑然天成，时域无任何闪烁拉伸，噪点结构完全一致。" },
+                { score: "9 - 12分 (合格)", desc: "擦除干净彻底，整体融合良好，在剧烈晃动帧或边缘反光处偶有微弱过渡痕迹。" },
+                { score: "0 - 8分 (欠缺)", desc: "出现明显贴片模糊、跟踪漂移脱节或未还原噪点导致画面出现空洞。" }
+              ]
+            }
+          },
+          {
+            id: "vfx_pr_2",
+            title: "2. CG 机械资产实拍背景深度融合与光影匹配",
+            task: "【考核任务】：提供实拍背景板与多通道 EXR 机械模型渲染序列。在 90 分钟内完成黑白位对齐、光源色调匹配、景深虚化、运动模糊匹配、阴影投射及最后的光学瑕疵模拟。\n【提交要求】：上传渲染样片及工程节点截图/源文件，粘贴链接。",
+            rubric: {
+              dimensions: "【实操评审维度】：黑白阶与暗部色偏匹配、高光与接触光散射、景深弥散圆质感、运动模糊与光学镜头瑕疵再现。",
+              levels: [
+                { score: "13 - 15分 (卓越)", desc: "CG 资产质感逼真达到院线级标准，黑白阶与环境光环境交互完美契合，焦外虚化与噪点颗粒与实拍镜头天衣无缝。" },
+                { score: "9 - 12分 (合格)", desc: "融合良好，光影方向与阴影逻辑正确，但在极端暗部色偏或边缘微光包裹的细腻度上稍有提升空间。" },
+                { score: "0 - 8分 (欠缺)", desc: "塑料感与贴纸感严重，亮暗反差脱节，漂浮于背景之上。" }
+              ]
+            }
+          }
+        ],
+        aesthetic: [
+          {
+            id: "vfx_ae_1",
+            title: "1. 寻找并拆解一段‘以假乱真的隐形特效（Invisible VFX）’经典案例",
+            task: "【审美命题】：请在优秀影视作品中寻找一段非大爆炸/非魔法、但技术难度极高的‘隐形特效’（如数字资产延展场景、数字替身、恶劣天气置换、无缝时代还原等）。\n【提交要求】：粘贴视频链接与具体时间点，写出不少于 150 字的视觉与技术难点拆解（分析为何它能骗过观众眼睛）。",
+            rubric: {
+              dimensions: "【审美评审维度】：视效物理真实感鉴赏力、光学与透视破绽洞察力、隐形特效工业化难度评估。",
+              levels: [
+                { score: "9 - 10分 (顶级)", desc: "选片极具行业工业水准，能深刻剖析镜头在空气透视、时域光影动态、微观细节瑕疵保留上的顶级欺骗性。" },
+                { score: "6 - 8分 (良好)", desc: "选片准确符合隐形特效定义，能分析其技术难点与合成融合要点。" },
+                { score: "0 - 5分 (平庸)", desc: "误选常规炫目光效大片，或分析仅停留在'很逼真'等空泛形容词。" }
+              ]
+            }
+          },
+          {
+            id: "vfx_ae_2",
+            title: "2. 寻找并拆解一段‘极具视觉概念与艺术审美’的科幻/奇幻概念特效片段",
+            task: "【审美命题】：寻找一段在色彩、光效质感、粒子动态或空间维度上具备极高概念艺术美感（而非俗套光效）的影视/CG 特效片段。\n【提交要求】：提供样片链接与时间轴，从概念设计、色彩构成和动态节奏三个维度进行审美阐述。",
+            rubric: {
+              dimensions: "【审美评审维度】：概念艺术与视效美术鉴赏力、色彩构成与动态美学敏感度、视觉风格化表达认知。",
+              levels: [
+                { score: "9 - 10分 (顶级)", desc: "展现出顶级概念美术审美与视效节奏把控力，能从形式感、色彩情绪及物理与超现实结合点进行高阶解读。" },
+                { score: "6 - 8分 (良好)", desc: "选片视觉美感突出，能从色彩与动效节奏进行较为系统的美术阐述。" },
+                { score: "0 - 5分 (平庸)", desc: "审美陈旧俗套，缺乏对现代概念视效美学的感知与提炼。" }
+              ]
+            }
+          }
+        ]
+      },
+
+      // -------------------------------------------------------------
+      // 岗位 3：拍摄摄影师 (Cinematographer / Cam Op)
+      // -------------------------------------------------------------
+      camera: {
+        roleName: "拍摄摄影师 (Cinematographer / Cam Op)",
+        multipleChoice: [
+          {
+            id: "cam_mc_1",
+            title: "1. 电影摄影中最标准的‘180度快门开角法则’（180-Degree Shutter Rule）意味着在 24fps 拍摄时，快门速度应设置为：",
+            options: ["A. 1/24 秒", "B. 1/48 或 1/50 秒", "C. 1/100 秒", "D. 1/200 秒"],
+            answer: "B",
+            explain: "快门时间等于帧率倒数的两倍（1/(2*fps)），能在人眼视觉暂留中产生最自然的运动模糊（Motion Blur）。"
+          },
+          {
+            id: "cam_mc_2",
+            title: "2. 在使用监视器‘假色（False Color）’进行人脸精确曝光时，正常亚洲人面部受光部的标准假色 IRE 范围通常为：",
+            options: ["A. 10 - 20 IRE (紫色/深蓝)", "B. 55 - 70 IRE (浅灰/粉色/绿)", "C. 90 - 100 IRE (红色)", "D. 0 IRE (黑)"],
+            answer: "B",
+            explain: "18% 中灰对应 IRE 40-45 左右，健康人脸肤色一般位于 IRE 55-70，超过 90 IRE 则面临高光裁切溢出风险。"
+          },
+          {
+            id: "cam_mc_3",
+            title: "3. 关于摄影机‘双原生 ISO’（Dual Native ISO）的底层机制，以下说法正确的是：",
+            options: ["A. 仅仅是通过机内算法数码提亮画面", "B. 传感器具备两组独立的模拟硬件读出放大电路，高原生 ISO 档位下暗部噪点极低", "C. 改变双原生 ISO 会导致画幅被裁切", "D. 只能在拍照模式生效"],
+            answer: "B",
+            explain: "双原生 ISO 切换物理增益电路，在高档位（如 ISO 3200/12800）下信噪比大幅提升，噪点显著低于单电路机型数码提亮。"
+          },
+          {
+            id: "cam_mc_4",
+            title: "4. 决定画面‘景深（Depth of Field）’虚化程度的物理三要素是：",
+            options: ["A. 镜头光圈大小、镜头焦距、摄影机到主体的对焦距离", "B. 快门速度、白平衡、ISO", "C. 传感器色彩空间、电池电量、环境温度", "D. 遮光斗大小、滤镜厚度、三脚架高度"],
+            answer: "A",
+            explain: "光圈越大、焦距越长、摄距越近，景深越浅（背景虚化越强烈）。"
+          },
+          {
+            id: "cam_mc_5",
+            title: "5. 在强日光户外为了保持大光圈浅景深和 1/50 秒快门，必须在镜头前加装的核心光学附件是：",
+            options: ["A. 星光镜", "B. 可调或固定档位中性灰度镜 (ND 滤镜)", "C. 近摄接圈", "D. 鱼眼附加镜"],
+            answer: "B",
+            explain: "ND 滤镜均匀衰减进入镜头的光通量，在不改变色彩的前提下压低通光量以维持大光圈与标准快门开角。"
+          },
+          {
+            id: "cam_mc_6",
+            title: "6. 电影镜头标注的 T 值（Transmission Value）与民用摄影镜头标注的 F 值的本质区别是：",
+            options: ["A. T 值纯粹是几何孔径比", "B. T 值考虑了镜头玻璃实际的光学透光率衰减，能精准保证多镜头间曝光完全一致", "C. F 值比 T 值更精准", "D. T 值只代表对焦行程"],
+            answer: "B",
+            explain: "F 值为理论几何比值，T 值测量了实际穿透镜片组的光能，是影视工业保证换镜头不跳曝光的基准。"
+          },
+          {
+            id: "cam_mc_7",
+            title: "7. 在室内采访布光中，主光（Key Light）与辅光（Fill Light）的照度比值为 4:1 时，其光比对应的光圈档位差约为：",
+            options: ["A. 0.5 档", "B. 1 档", "C. 2 档 (2的平方倍)", "D. 4 档"],
+            answer: "C",
+            explain: "光照度每翻一倍相差 1 档光圈；4:1 照度差即为 2 的平方倍，相差 2 档光圈反差。"
+          },
+          {
+            id: "cam_mc_8",
+            title: "8. 在使用 2.0x 变形宽银幕镜头（Anamorphic Lens）拍摄时，画面在传感器上的物理成像特点是：",
+            options: ["A. 画面被水平挤压了 2 倍，需要在监视器中进行 DeSqueeze 恢复正常比例", "B. 画面被上下拉伸", "C. 变成圆形", "D. 完全黑白"],
+            answer: "A",
+            explain: "变形镜头利用柱面光学镜片在水平方向压缩 2 倍视野，展开后带来宽银幕视野和特有的椭圆焦外光斑。"
+          },
+          {
+            id: "cam_mc_9",
+            title: "9. 摄影机向右曝光（ETTR, Expose to the Right）原则的核心收益与风险是：",
+            options: ["A. 最大化利用传感器高光区域比特深度并大幅压制暗部噪点，但需严防高光过曝裁切 (Clipping)", "B. 让画面整体欠曝", "C. 降低色彩饱和度", "D. 导致镜头脱焦"],
+            answer: "A",
+            explain: "传感器超过一半的动态范围集中在高亮区，在不过曝的前提下向右曝光后期拉回可获得极其干净细腻的暗部。"
+          },
+          {
+            id: "cam_mc_10",
+            title: "10. 在标准白炽灯（钨丝灯 3200K）与正午日光（5600K）混合的光照场景中，若要将钨丝灯光色校准统一为日光色温，应在其灯前加装：",
+            options: ["A. CTO (降色温橙色滤纸)", "B. CTB (升色温蓝色滤纸 / Full CTB)", "C. 柔光纸", "D. 减光网"],
+            answer: "B",
+            explain: "CTB (Color Temperature Blue) 将 3200K 升至约 5600K 日光色温；CTO 则用于将日光降至暖色 3200K。"
+          }
+        ],
+        shortAnswer: [
+          {
+            id: "cam_sa_1",
+            title: "1. 极端高反差/大光比户外场景的定光与动态范围管理",
+            question: "在晴天烈日强逆光场景下拍摄人物特写，背景天空与人物暗面反差高达 8 档以上。请详述你如何利用测光工具、光线重塑工具及传感器动态范围分配进行精准定光？",
+            rubric: {
+              dimensions: "【考核维度】：传感器宽容度科学分配能力、肤色基准定量标定思维、现场物理控光/补光/减光综合方案。",
+              levels: [
+                { score: "5 - 6分 (卓越)", desc: "定量分析传感器高低光宽容度分配逻辑，精准标定肤色目标电平，能熟练通过大面积漫射补光与环境减光压低反差，兼顾通透肤质与天空高光细节保留。" },
+                { score: "3 - 4分 (合格)", desc: "能提出使用反光板与参考波形图控制不过曝，具备基础定光意识，但对暗部噪点控制与极端反差分配方案略显经验化。" },
+                { score: "0 - 2分 (欠缺)", desc: "完全依赖机身屏幕直观感觉，方案存在严重过曝死白或暗部死黑噪点爆发风险。" }
+              ]
+            }
+          },
+          {
+            id: "cam_sa_2",
+            title: "2. 广角与长焦镜头在视听心理与空间透视上的差异",
+            question: "广角镜头与长焦镜头除了取景视野宽窄不同外，在空间纵深感、人物面部比例、背景压缩感以及传达观众情绪上有何本质区别？请分别举例说明其叙事用途。",
+            rubric: {
+              dimensions: "【考核维度】：光学几何透视对空间形变的本质理解、镜头语言赋能角色心理与戏剧潜台词的构思深度。",
+              levels: [
+                { score: "5 - 6分 (卓越)", desc: "深刻洞察光学透视对观众心理沉浸感、人际疏离/压迫感的作用机制，能构思出高度契合戏剧潜台词与情绪状态的焦段调度方案。" },
+                { score: "3 - 4分 (合格)", desc: "熟知焦距对景深和背景压缩的影响，能做常规叙事匹配，但缺乏深层心理学视听构思。" },
+                { score: "0 - 2分 (欠缺)", desc: "仅把焦距视为'取景远近'的工具，不理解空间透视与戏剧心理学的关联。" }
+              ]
+            }
+          },
+          {
+            id: "cam_sa_3",
+            title: "3. 电影感‘阴面拍摄’与高级暗调布光（Low-Key Lighting）",
+            question: "在影视布光中，何为‘在阴面拍摄（Filming on the Shadow Side）’？请详述一个单人情绪采访场景的机位与灯位配置逻辑，并说明如何通过遮光控制‘去杂光’以建立高级影调层次。",
+            rubric: {
+              dimensions: "【考核维度】：光影立体雕刻逻辑（主光与机位几何关系）、光比反差控制、空间杂光隔离与负补光应用。",
+              levels: [
+                { score: "5 - 6分 (卓越)", desc: "深刻理解'控光与吸光重于打光'，精准构建阴面反差雕刻人物轮廓，熟练运用黑旗吸光消除漫射杂光，创造深邃有呼吸感的电影级影调。" },
+                { score: "3 - 4分 (合格)", desc: "能搭建基础三点布光并阐述阴面机位，但对环境光融合与暗面杂光消除的细腻度考虑不足。" },
+                { score: "0 - 2分 (欠缺)", desc: "全场景平光直射，无立体感与反差层次，对杂光干扰缺乏控制手段。" }
+              ]
+            }
+          },
+          {
+            id: "cam_sa_4",
+            title: "4. 复杂长镜头（Long Take）拍摄中的突发失误现场协同与补救",
+            question: "在执行一个包含推拉摇移、演员长距离走位的复杂一镜到底长镜头时，若中途演员走位偏离标记点导致瞬间脱焦，作为掌机或摄影指导，你如何在拍摄中临场应变以保住素材可用性？",
+            rubric: {
+              dimensions: "【考核维度】：片场复杂调度中的即时视听代偿能力、运镜微调技巧、核心创作组即时协作与底线风控意识。",
+              levels: [
+                { score: "5 - 6分 (卓越)", desc: "大局观与临场抗压极强，能通过身体构图缓冲与有机运镜将现场偏差转化为戏剧化视听亮点，全力保全长镜头可用底线。" },
+                { score: "3 - 4分 (合格)", desc: "具备临场补救意识，能尽量维持跟焦和构图平衡，但处理手法略显生硬或节奏稍受影响。" },
+                { score: "0 - 2分 (欠缺)", desc: "遇突发情况慌乱停机或推卸责任，缺乏工业化掌机应变素养。" }
+              ]
+            }
+          },
+          {
+            id: "cam_sa_5",
+            title: "5. 摄影机光学系统保养、装拆与片场安全规范",
+            question: "在严苛环境（海边高盐雾、沙漠风沙、极寒雨雪天）拍摄时，摄影组在机身密封防尘、镜头更换规程、电池低温保温以及重型设备配重安全上有哪些强制性操作规程？",
+            rubric: {
+              dimensions: "【考核维度】：工业级设备防护与保养 SOP 严密性、极端恶劣环境作业常识、片场人身与高价值器材安全底线思维。",
+              levels: [
+                { score: "5 - 6分 (卓越)", desc: "熟知片场器材生命线，换镜防风防尘规程、传感器防护、温差结露预防、防倾倒安全配重等规程严密无漏洞，具备标准工业化带组素养。" },
+                { score: "3 - 4分 (合格)", desc: "了解常规保养与基础防雨防尘措施，安全意识良好，但在极端环境下的防护细节偶有疏漏。" },
+                { score: "0 - 2分 (欠缺)", desc: "操作粗暴违规，无安全防护常识，存在严重设备损坏或片场安全隐患。" }
+              ]
+            }
+          }
+        ],
+        practical: [
+          {
+            id: "cam_pr_1",
+            title: "1. 现场实战命题布光与影调雕刻 (现场实操)",
+            task: "【考核任务】：现场抽取命题（如‘深夜悬疑审讯’或‘高端美妆柔光’），限时 45 分钟利用现场灯具独立完成机位架设、主辅光比配置、色温校准与人像高光塑造。\n【提交要求】：将现场监视器波形图截图、最终实拍 RAW/Log 静帧与短视频片段上传网盘并粘贴链接。",
+            rubric: {
+              dimensions: "【实操评审维度】：戏剧命题氛围契合度、主辅光比与立体雕刻感、受光面细腻过渡、色温冷暖和谐度与杂光控制。",
+              levels: [
+                { score: "13 - 15分 (卓越)", desc: "光影质感极其高级，影调层次分明且完美契合戏剧命题，人物面部过渡细腻，高光控制精准无穿帮。" },
+                { score: "9 - 12分 (合格)", desc: "布光合理，曝光准确，能够烘托出基本氛围，但对背景层次与环境光渗透的修饰稍显平淡。" },
+                { score: "0 - 8分 (欠缺)", desc: "平光严重或光线杂乱穿帮，曝光失控，完全脱离命题情境。" }
+              ]
+            }
+          },
+          {
+            id: "cam_pr_2",
+            title: "2. 动态运镜平稳度与精准跟焦实测 (现场实操)",
+            task: "【考核任务】：使用肩扛/稳定器/滑轨，执行 3 组指定复合运镜动作（低角度慢推过障、环绕主体半周并切换后景焦点、动态快速跟拍并在指定画幅稳停）。\n【提交要求】：上传连续实拍素材片段与测验数据，在此粘贴链接。",
+            rubric: {
+              dimensions: "【实操评审维度】：起幅落幅平稳度、移动速率恒定感、焦点切换平滑度（无拉风箱）、构图平衡与呼吸感。",
+              levels: [
+                { score: "13 - 15分 (卓越)", desc: "步法与身体重心控制极佳，起落幅丝滑无顿挫，焦点切换精准如果断，构图严谨极具镜头美感。" },
+                { score: "9 - 12分 (合格)", desc: "运镜基本平稳，焦点基本准确，在剧烈位移或速度突变时有轻微晃动或微小迟滞。" },
+                { score: "0 - 8分 (欠缺)", desc: "运镜抖动颠簸剧烈，频繁脱焦或反复拉风箱，构图严重失衡。" }
+              ]
+            }
+          }
+        ],
+        aesthetic: [
+          {
+            id: "cam_ae_1",
+            title: "1. 寻找并拆解一段‘光影与油画质感影调达到极致’的电影摄影片段",
+            task: "【审美命题】：请在经典电影作品中，寻找一段你认为在‘光线质感、影调反差控制、环境光与人物融合’上达到殿堂级的摄影段落。\n【提交要求】：粘贴样片视频链接/片名及精确时间区间，写出不少于 150 字的光学解析（分析其主光源方向、柔硬度、反差比与色温关系）。",
+            rubric: {
+              dimensions: "【审美评审维度】：大师级光影美学眼界、光源物理动机分析深度、影调质感与情绪通透度洞察。",
+              levels: [
+                { score: "9 - 10分 (顶级)", desc: "选片极具美学高度，能深刻拆解光源物理动机、质感软硬衰减与影调反差对电影心理空间的塑造。" },
+                { score: "6 - 8分 (良好)", desc: "选片经典恰当，能够指出光比、方向与色温特征，分析通顺具备专业基础。" },
+                { score: "0 - 5分 (平庸)", desc: "选片平庸，缺乏光影敏感度，分析停留在表面剧情复述。" }
+              ]
+            }
+          },
+          {
+            id: "cam_ae_2",
+            title: "2. 寻找并拆解一段‘用摄影机运动与焦段调度表达人物内心潜台词’的镜头",
+            task: "【审美命题】：寻找一段通过运镜轨迹（如长镜头推拉、Dolly Zoom 眩晕镜头、窥视视角等）巧妙传递角色心理压力或情绪爆发的镜头范例。\n【提交要求】：提供样片链接与时间点，拆解摄影指导是如何通过摄影机视点调度带领观众进入角色内心的。",
+            rubric: {
+              dimensions: "【审美评审维度】：摄影机视点与戏剧潜台词隐喻认知、机位运动心理学洞察、光学视听语言综合鉴赏力。",
+              levels: [
+                { score: "9 - 10分 (顶级)", desc: "深刻理解摄影机视点作为角色潜意识投射的叙事功能，拆解兼具光学技术深度与艺术共鸣。" },
+                { score: "6 - 8分 (良好)", desc: "选片符合要求，能够阐释运镜与角色情绪变化的关联。" },
+                { score: "0 - 5分 (平庸)", desc: "选片缺乏运镜设计感，分析泛泛而谈。" }
+              ]
+            }
+          }
+        ]
+      }
+    };
+
+    // ==========================================
+    // 2. 状态变量与初始化
+    // ==========================================
+    let currentRoleKey = 'editor';
+    let currentUserMode = 'candidate'; // 'candidate' (考生作答) | 'examiner' (考官评审)
+    
+    // 考生作答数据
+    let candidateAnswers = {
+      multipleChoice: {}, // { qId: "A" }
+      shortAnswer: {},    // { qId: "text" }
+      practical: {},      // { qId: "links/text" }
+      aesthetic: {}       // { qId: "links/analysis" }
+    };
+
+    // 考官打分数据（专人评分）
+    let examinerScores = {
+      multipleChoice: {}, // { qId: score (0-2) }
+      shortAnswer: {},    // { qId: score (0-6) }
+      practical: {},      // { qId: score (0-15) }
+      aesthetic: {}       // { qId: score (0-10) }
+    };
+
+    window.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('evalDate').value = new Date().toISOString().split('T')[0];
+      initExamForRole(currentRoleKey);
+      updateRecordCountBadge();
+    });
+
+    // 切换岗位
+    function changeRole(roleKey) {
+      if (currentRoleKey === roleKey) return;
+      currentRoleKey = roleKey;
+
+      // 更新按钮高亮
+      document.querySelectorAll('.role-tab').forEach(tab => {
+        tab.className = 'role-tab px-4 py-2 rounded-xl text-sm font-medium transition flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-300';
+      });
+      document.getElementById(`tab-${roleKey}`).className = 'role-tab px-4 py-2 rounded-xl text-sm font-semibold transition flex items-center gap-2 bg-brand-600 text-white shadow-lg shadow-brand-600/30';
+
+      // 清空当前作答和打分
+      candidateAnswers = { multipleChoice: {}, shortAnswer: {}, practical: {}, aesthetic: {} };
+      examinerScores = { multipleChoice: {}, shortAnswer: {}, practical: {}, aesthetic: {} };
+
+      initExamForRole(roleKey);
+    }
+
+    // 切换 考生/考官 模式
+    function setUserMode(mode) {
+      currentUserMode = mode;
+      const btnCand = document.getElementById('btn-mode-candidate');
+      const btnExam = document.getElementById('btn-mode-examiner');
+      const modeNameText = document.getElementById('modeNameText');
+      const modeHintText = document.getElementById('modeHintText');
+
+      if (mode === 'candidate') {
+        btnCand.className = 'px-3 py-1.5 rounded-lg text-xs font-medium transition text-white bg-brand-600 shadow';
+        btnExam.className = 'px-3 py-1.5 rounded-lg text-xs font-medium transition text-slate-400 hover:text-slate-200';
+        modeNameText.innerText = '【考生作答模式】请认真完成以下四大部分考核题目并提交';
+        modeNameText.className = 'text-brand-400';
+        modeHintText.innerText = '提示：完成作答后可切换至“考官评审模式”由主考专人依据专业评估量规核算给分。';
+      } else {
+        btnExam.className = 'px-3 py-1.5 rounded-lg text-xs font-medium transition text-white bg-brand-600 shadow';
+        btnCand.className = 'px-3 py-1.5 rounded-lg text-xs font-medium transition text-slate-400 hover:text-slate-200';
+        modeNameText.innerText = '【考官专人评审模式】请依据评分量规与考核维度，逐题核定考生得分';
+        modeNameText.className = 'text-amber-400';
+        modeHintText.innerText = '操作：考官可查看题目解析与多维度分级评分量规，并在每题右侧专人打分框内录入核定分数。';
+      }
+
+      // 重新渲染题目视图，根据模式显示/隐藏考官专属打分栏与评分准则
+      renderExamUI();
+    }
+
+    // 初始化某岗位试卷
+    function initExamForRole(roleKey) {
+      renderExamUI();
+      calculateScoreFromInputs();
+    }
+
+    // ==========================================
+    // 3. 试卷与考核界面渲染逻辑（严格区分考生与考官视角）
+    // ==========================================
+    function renderExamUI() {
+      const data = CHENGSHI_EXAM_DB[currentRoleKey];
+      const container = document.getElementById('examContainer');
+      container.innerHTML = '';
+
+      const isExaminer = (currentUserMode === 'examiner');
+
+      // -----------------------------------------------------------------
+      // 模块一：10道单选题 (20分)
+      // -----------------------------------------------------------------
+      const sec1 = document.createElement('div');
+      sec1.className = 'bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4 card-box';
+      sec1.innerHTML = `
+        <div class="flex flex-wrap items-center justify-between border-b border-slate-800 pb-3 gap-2">
+          <div class="flex items-center gap-2">
+            <span class="w-7 h-7 rounded-lg bg-brand-500/20 text-brand-400 flex items-center justify-center font-bold text-xs border border-brand-500/30">一</span>
+            <h3 class="text-sm font-bold text-white tracking-wide">模块一：专业单项选择题（共 10 题，每题 2 分，满分 20 分）</h3>
+          </div>
+          <div class="text-xs text-slate-400">
+            ${isExaminer ? '<span class="text-amber-400 font-semibold"><i class="fa-solid fa-lock-open mr-1"></i>考官视角：已显示标准答案与给分控件</span>' : '请考生点击选择唯一正确答案'}
+          </div>
+        </div>
+        <div class="grid grid-cols-1 gap-4" id="mcQuestionsList"></div>
+      `;
+      container.appendChild(sec1);
+
+      const mcList = sec1.querySelector('#mcQuestionsList');
+      data.multipleChoice.forEach((mc, idx) => {
+        const currentAns = candidateAnswers.multipleChoice[mc.id] || '';
+        const currentScore = examinerScores.multipleChoice[mc.id] !== undefined ? examinerScores.multipleChoice[mc.id] : (currentAns === mc.answer ? 2 : 0);
+
+        const card = document.createElement('div');
+        card.className = 'bg-slate-950/80 border border-slate-800 rounded-xl p-4 transition';
+        card.innerHTML = `
+          <div class="flex flex-wrap items-start justify-between gap-2 mb-3">
+            <p class="text-xs font-semibold text-slate-200 leading-relaxed max-w-2xl">
+              <span class="text-brand-400 mr-1 font-bold">第${idx+1}题 (2分)</span> ${mc.title}
+            </p>
+            ${isExaminer ? `
+              <div class="flex items-center gap-2 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800 text-xs">
+                <span class="text-slate-400">考官核定给分:</span>
+                <input type="number" min="0" max="2" step="1" 
+                       value="${currentScore}" 
+                       onchange="updateExaminerScore('multipleChoice', '${mc.id}', this.value)"
+                       class="w-12 bg-slate-950 border border-brand-500/50 rounded px-1.5 py-0.5 text-center font-bold text-brand-400 focus:outline-none">
+                <span class="text-slate-500">/ 2分</span>
+              </div>
+            ` : ''}
+          </div>
+
+          <!-- 四个选项 -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
+            ${mc.options.map(opt => {
+              const optKey = opt.trim().charAt(0);
+              const isSelected = (currentAns === optKey);
+              return `
+                <button type="button" onclick="selectCandidateMC('${mc.id}', '${optKey}')"
+                        class="text-left px-3 py-2 rounded-lg text-xs font-medium border transition flex items-center gap-2 ${isSelected ? 'bg-brand-600/20 border-brand-500 text-brand-300' : 'bg-slate-900/60 border-slate-800 text-slate-300 hover:border-slate-700'}">
+                  <span class="w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold ${isSelected ? 'bg-brand-500 text-white' : 'bg-slate-800 text-slate-400'}">
+                    ${optKey}
+                  </span>
+                  <span>${opt}</span>
+                </button>
+              `;
+            }).join('')}
+          </div>
+
+          <!-- 考官解析与正确答案提示 (仅考官模式显示) -->
+          ${isExaminer ? `
+            <div class="mt-3 pt-2 border-t border-slate-800/80 flex flex-wrap items-center justify-between text-[11px] gap-2">
+              <div class="text-emerald-400">
+                <strong>标准答案：${mc.answer}</strong> <span class="text-slate-400 ml-2">(${mc.explain})</span>
+              </div>
+              <div class="text-slate-400">
+                考生所选：<span class="font-bold ${currentAns === mc.answer ? 'text-emerald-400' : 'text-rose-400'}">${currentAns || '未作答'}</span>
+              </div>
+            </div>
+          ` : ''}
+        `;
+        mcList.appendChild(card);
+      });
+
+      // -----------------------------------------------------------------
+      // 模块二：5道文字简答题 (30分)
+      // -----------------------------------------------------------------
+      const sec2 = document.createElement('div');
+      sec2.className = 'bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4 card-box';
+      sec2.innerHTML = `
+        <div class="flex flex-wrap items-center justify-between border-b border-slate-800 pb-3 gap-2">
+          <div class="flex items-center gap-2">
+            <span class="w-7 h-7 rounded-lg bg-brand-500/20 text-brand-400 flex items-center justify-center font-bold text-xs border border-brand-500/30">二</span>
+            <h3 class="text-sm font-bold text-white tracking-wide">模块二：专业文字简答题（共 5 题，每题 6 分，满分 30 分）</h3>
+          </div>
+          <div class="text-xs text-slate-400">考生深入阐述工作流方案与技术要点，考官依据能力量规核定得分</div>
+        </div>
+        <div class="space-y-4" id="saQuestionsList"></div>
+      `;
+      container.appendChild(sec2);
+
+      const saList = sec2.querySelector('#saQuestionsList');
+      data.shortAnswer.forEach((sa, idx) => {
+        const ansText = candidateAnswers.shortAnswer[sa.id] || '';
+        const curScore = examinerScores.shortAnswer[sa.id] !== undefined ? examinerScores.shortAnswer[sa.id] : 0;
+
+        const card = document.createElement('div');
+        card.className = 'bg-slate-950/80 border border-slate-800 rounded-xl p-4 space-y-3';
+        card.innerHTML = `
+          <div class="flex flex-wrap items-start justify-between gap-2">
+            <h4 class="text-xs font-bold text-white flex items-center gap-1.5">
+              <span class="text-brand-400">第${idx+1}题</span> ${sa.title} <span class="text-slate-500 text-[11px]">(满分6分)</span>
+            </h4>
+            ${isExaminer ? `
+              <div class="flex items-center gap-2 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800 text-xs">
+                <span class="text-slate-400">考官打分:</span>
+                <input type="number" min="0" max="6" step="0.5" 
+                       value="${curScore}" 
+                       onchange="updateExaminerScore('shortAnswer', '${sa.id}', this.value)"
+                       class="w-14 bg-slate-950 border border-brand-500/50 rounded px-1.5 py-0.5 text-center font-bold text-brand-400 focus:outline-none">
+                <span class="text-slate-500">/ 6分</span>
+              </div>
+            ` : ''}
+          </div>
+
+          <p class="text-xs text-slate-300 bg-slate-900/60 p-2.5 rounded-lg leading-relaxed">
+            <strong class="text-brand-400">考核题目：</strong>${sa.question}
+          </p>
+
+          <div>
+            <label class="block text-[11px] font-medium text-slate-400 mb-1">考生答题区：</label>
+            <textarea rows="4" onchange="updateCandidateAnswer('shortAnswer', '${sa.id}', this.value)"
+                      class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-100 placeholder-slate-600 focus:outline-none focus:border-brand-500"
+                      placeholder="请在此输入您的专业分析、工作流方案与技术要点...">${ansText}</textarea>
+          </div>
+
+          <!-- 仅在考官模式下展示结构化专业评分量规 (不剧透具体字面答案) -->
+          ${isExaminer ? `
+            <div class="text-[11px] bg-amber-950/20 border border-amber-800/30 p-3 rounded-lg text-amber-200/90 space-y-2">
+              <div class="text-amber-400 font-bold flex items-center gap-1 border-b border-amber-800/40 pb-1.5">
+                <i class="fa-solid fa-scale-balanced"></i> 橙视考官专人评分量规（能力梯队标准）：
+              </div>
+              <div class="text-slate-300 text-[11px]">${sa.rubric.dimensions}</div>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-2 mt-1">
+                ${sa.rubric.levels.map(lvl => `
+                  <div class="bg-slate-950/70 p-2 rounded border border-amber-900/40">
+                    <strong class="text-brand-400 block mb-0.5">${lvl.score}</strong>
+                    <span class="text-slate-400 text-[10px] leading-relaxed">${lvl.desc}</span>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          ` : ''}
+        `;
+        saList.appendChild(card);
+      });
+
+      // -----------------------------------------------------------------
+      // 模块三：2道实战技能实操题 (30分)
+      // -----------------------------------------------------------------
+      const sec3 = document.createElement('div');
+      sec3.className = 'bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4 card-box';
+      sec3.innerHTML = `
+        <div class="flex flex-wrap items-center justify-between border-b border-slate-800 pb-3 gap-2">
+          <div class="flex items-center gap-2">
+            <span class="w-7 h-7 rounded-lg bg-brand-500/20 text-brand-400 flex items-center justify-center font-bold text-xs border border-brand-500/30">三</span>
+            <h3 class="text-sm font-bold text-white tracking-wide">模块三：实战技能实操题（共 2 题，每题 15 分，满分 30 分）</h3>
+          </div>
+          <div class="text-xs text-slate-400">考生上机/现场实战，提交工程成片网盘链接，考官专人审核打分</div>
+        </div>
+        <div class="space-y-4" id="prQuestionsList"></div>
+      `;
+      container.appendChild(sec3);
+
+      const prList = sec3.querySelector('#prQuestionsList');
+      data.practical.forEach((pr, idx) => {
+        const prAns = candidateAnswers.practical[pr.id] || '';
+        const prScore = examinerScores.practical[pr.id] !== undefined ? examinerScores.practical[pr.id] : 0;
+
+        const card = document.createElement('div');
+        card.className = 'bg-slate-950/80 border border-slate-800 rounded-xl p-4 space-y-3';
+        card.innerHTML = `
+          <div class="flex flex-wrap items-start justify-between gap-2">
+            <h4 class="text-xs font-bold text-white flex items-center gap-1.5">
+              <span class="text-brand-400">实操题 ${idx+1}</span> ${pr.title} <span class="text-slate-500 text-[11px]">(满分15分)</span>
+            </h4>
+            ${isExaminer ? `
+              <div class="flex items-center gap-2 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800 text-xs">
+                <span class="text-slate-400">考官实操打分:</span>
+                <input type="number" min="0" max="15" step="0.5" 
+                       value="${prScore}" 
+                       onchange="updateExaminerScore('practical', '${pr.id}', this.value)"
+                       class="w-16 bg-slate-950 border border-brand-500/50 rounded px-1.5 py-0.5 text-center font-bold text-brand-400 focus:outline-none">
+                <span class="text-slate-500">/ 15分</span>
+              </div>
+            ` : ''}
+          </div>
+
+          <div class="text-xs text-slate-300 bg-slate-900/80 p-3 rounded-lg leading-relaxed whitespace-pre-line border border-slate-800">
+            ${pr.task}
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-medium text-slate-400 mb-1">考生作品提交区（成片网盘链接、提取码及操作说明）：</label>
+            <textarea rows="2" onchange="updateCandidateAnswer('practical', '${pr.id}', this.value)"
+                      class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-100 placeholder-slate-600 focus:outline-none focus:border-brand-500"
+                      placeholder="例：百度网盘链接: https://pan.baidu.com/... 提取码: 8888。工程文件与成品说明...">${prAns}</textarea>
+          </div>
+
+          <!-- 仅在考官模式下展示实操评分量规 -->
+          ${isExaminer ? `
+            <div class="text-[11px] bg-amber-950/20 border border-amber-800/30 p-3 rounded-lg text-amber-200/90 space-y-2">
+              <div class="text-amber-400 font-bold flex items-center gap-1 border-b border-amber-800/40 pb-1.5">
+                <i class="fa-solid fa-clipboard-check"></i> 实操专人评审维度与考量准则：
+              </div>
+              <div class="text-slate-300 text-[11px]">${pr.rubric.dimensions}</div>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-2 mt-1">
+                ${pr.rubric.levels.map(lvl => `
+                  <div class="bg-slate-950/70 p-2 rounded border border-amber-900/40">
+                    <strong class="text-brand-400 block mb-0.5">${lvl.score}</strong>
+                    <span class="text-slate-400 text-[10px] leading-relaxed">${lvl.desc}</span>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          ` : ''}
+        `;
+        prList.appendChild(card);
+      });
+
+      // -----------------------------------------------------------------
+      // 模块四：2道样片寻找与审美分析题 (20分)
+      // -----------------------------------------------------------------
+      const sec4 = document.createElement('div');
+      sec4.className = 'bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4 card-box';
+      sec4.innerHTML = `
+        <div class="flex flex-wrap items-center justify-between border-b border-slate-800 pb-3 gap-2">
+          <div class="flex items-center gap-2">
+            <span class="w-7 h-7 rounded-lg bg-brand-500/20 text-brand-400 flex items-center justify-center font-bold text-xs border border-brand-500/30">四</span>
+            <h3 class="text-sm font-bold text-white tracking-wide">模块四：样片寻找提交与影视审美题（共 2 题，每题 10 分，满分 20 分）</h3>
+          </div>
+          <div class="text-xs text-slate-400">考生寻找匹配行业标杆样片并深度拆解，考官评估艺术鉴赏力与美学上限</div>
+        </div>
+        <div class="space-y-4" id="aeQuestionsList"></div>
+      `;
+      container.appendChild(sec4);
+
+      const aeList = sec4.querySelector('#aeQuestionsList');
+      data.aesthetic.forEach((ae, idx) => {
+        const aeAns = candidateAnswers.aesthetic[ae.id] || '';
+        const aeScore = examinerScores.aesthetic[ae.id] !== undefined ? examinerScores.aesthetic[ae.id] : 0;
+
+        const card = document.createElement('div');
+        card.className = 'bg-slate-950/80 border border-slate-800 rounded-xl p-4 space-y-3';
+        card.innerHTML = `
+          <div class="flex flex-wrap items-start justify-between gap-2">
+            <h4 class="text-xs font-bold text-white flex items-center gap-1.5">
+              <span class="text-brand-400">审美命题 ${idx+1}</span> ${ae.title} <span class="text-slate-500 text-[11px]">(满分10分)</span>
+            </h4>
+            ${isExaminer ? `
+              <div class="flex items-center gap-2 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800 text-xs">
+                <span class="text-slate-400">考官审美打分:</span>
+                <input type="number" min="0" max="10" step="0.5" 
+                       value="${aeScore}" 
+                       onchange="updateExaminerScore('aesthetic', '${ae.id}', this.value)"
+                       class="w-16 bg-slate-950 border border-brand-500/50 rounded px-1.5 py-0.5 text-center font-bold text-brand-400 focus:outline-none">
+                <span class="text-slate-500">/ 10分</span>
+              </div>
+            ` : ''}
+          </div>
+
+          <div class="text-xs text-slate-300 bg-slate-900/80 p-3 rounded-lg leading-relaxed whitespace-pre-line border border-slate-800">
+            ${ae.task}
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-medium text-slate-400 mb-1">考生样片链接与审美拆解提交区：</label>
+            <textarea rows="3" onchange="updateCandidateAnswer('aesthetic', '${ae.id}', this.value)"
+                      class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-100 placeholder-slate-600 focus:outline-none focus:border-brand-500"
+                      placeholder="请提供参考视频地址（B站/Vimeo等）+ 具体时间点，并撰写专业视听审美拆解文字...">${aeAns}</textarea>
+          </div>
+
+          <!-- 仅在考官模式下展示审美量规 -->
+          ${isExaminer ? `
+            <div class="text-[11px] bg-amber-950/20 border border-amber-800/30 p-3 rounded-lg text-amber-200/90 space-y-2">
+              <div class="text-amber-400 font-bold flex items-center gap-1 border-b border-amber-800/40 pb-1.5">
+                <i class="fa-solid fa-palette"></i> 橙视审美力与品味鉴赏评分量规：
+              </div>
+              <div class="text-slate-300 text-[11px]">${ae.rubric.dimensions}</div>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-2 mt-1">
+                ${ae.rubric.levels.map(lvl => `
+                  <div class="bg-slate-950/70 p-2 rounded border border-amber-900/40">
+                    <strong class="text-brand-400 block mb-0.5">${lvl.score}</strong>
+                    <span class="text-slate-400 text-[10px] leading-relaxed">${lvl.desc}</span>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          ` : ''}
+        `;
+        aeList.appendChild(card);
+      });
+    }
+
+    // ==========================================
+    // 4. 数据更新与专人核算
+    // ==========================================
+    function selectCandidateMC(qId, optionKey) {
+      candidateAnswers.multipleChoice[qId] = optionKey;
+      
+      // 若当前为考官模式，默认自动匹配基础得分（考官仍可手动修改覆盖）
+      const q = CHENGSHI_EXAM_DB[currentRoleKey].multipleChoice.find(item => item.id === qId);
+      if (q) {
+        examinerScores.multipleChoice[qId] = (optionKey === q.answer) ? 2 : 0;
+      }
+
+      renderExamUI();
+      calculateScoreFromInputs();
+    }
+
+    function updateCandidateAnswer(sectionKey, qId, value) {
+      candidateAnswers[sectionKey][qId] = value;
+    }
+
+    function updateExaminerScore(sectionKey, qId, value) {
+      examinerScores[sectionKey][qId] = parseFloat(value) || 0;
+      calculateScoreFromInputs();
+    }
+
+    // 考官总分核算
+    function calculateScoreFromInputs() {
+      let total = 0;
+
+      // 1. 选择题得分
+      const mcList = CHENGSHI_EXAM_DB[currentRoleKey].multipleChoice;
+      mcList.forEach(item => {
+        if (examinerScores.multipleChoice[item.id] !== undefined) {
+          total += examinerScores.multipleChoice[item.id];
+        } else {
+          if (candidateAnswers.multipleChoice[item.id] === item.answer) {
+            total += 2;
+          }
+        }
+      });
+
+      // 2. 简答题
+      Object.values(examinerScores.shortAnswer).forEach(v => total += (v || 0));
+      // 3. 实操题
+      Object.values(examinerScores.practical).forEach(v => total += (v || 0));
+      // 4. 审美题
+      Object.values(examinerScores.aesthetic).forEach(v => total += (v || 0));
+
+      const finalTotal = Math.min(100, Math.max(0, total)).toFixed(1);
+      document.getElementById('displayTotalScore').innerText = finalTotal;
+
+      // 辅助定级推荐
+      const gradeSel = document.getElementById('finalGradeSelect');
+      if (finalTotal >= 88) {
+        gradeSel.value = "卓越 / 资深主创 (88-100分)";
+      } else if (finalTotal >= 75) {
+        gradeSel.value = "胜任 / 核心骨干 (75-87分)";
+      } else if (finalTotal >= 60) {
+        gradeSel.value = "合格 / 助理制作 (60-74分)";
+      } else {
+        gradeSel.value = "不合格 / 不予录用 (<60分)";
+      }
+    }
+
+    // ==========================================
+    // 5. 归档与历史档案管理
+    // ==========================================
+    const STORAGE_KEY = "CHENGSHI_EVAL_RECORDS_V3";
+
+    function getStoredRecords() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function saveCurrentEvaluation() {
+      calculateScoreFromInputs();
+
+      const candidateName = document.getElementById('candidateName').value.trim() || '未命名考生';
+      const examinerName = document.getElementById('examinerName').value.trim() || '橙视主考官';
+      const evalDate = document.getElementById('evalDate').value;
+      const targetLevel = document.getElementById('targetLevel').value;
+      const finalScore = document.getElementById('displayTotalScore').innerText;
+      const finalGrade = document.getElementById('finalGradeSelect').value;
+      const comment = document.getElementById('examinerOverallComment').value.trim();
+
+      const record = {
+        id: 'CS_' + Date.now(),
+        candidateName,
+        examinerName,
+        evalDate,
+        targetLevel,
+        roleKey: currentRoleKey,
+        roleName: CHENGSHI_EXAM_DB[currentRoleKey].roleName,
+        finalScore,
+        finalGrade,
+        comment,
+        candidateAnswers: JSON.parse(JSON.stringify(candidateAnswers)),
+        examinerScores: JSON.parse(JSON.stringify(examinerScores)),
+        savedAt: new Date().toLocaleString()
+      };
+
+      const records = getStoredRecords();
+      records.unshift(record);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+
+      updateRecordCountBadge();
+      showToast(`已成功归档【${candidateName}】的橙视考核评审表！`);
+    }
+
+    function updateRecordCountBadge() {
+      const records = getStoredRecords();
+      document.getElementById('recordCountBadge').innerText = records.length;
+    }
+
+    function switchView(viewName) {
+      if (viewName === 'records') {
+        renderRecordsTable();
+        document.getElementById('evaluationView').classList.add('hidden');
+        document.getElementById('recordsView').classList.remove('hidden');
+      } else {
+        document.getElementById('recordsView').classList.add('hidden');
+        document.getElementById('evaluationView').classList.remove('hidden');
+      }
+    }
+
+    function renderRecordsTable() {
+      const records = getStoredRecords();
+      const tbody = document.getElementById('recordsTableBody');
+      tbody.innerHTML = '';
+
+      if (records.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="text-center py-8 text-slate-500">
+              <i class="fa-solid fa-folder-open text-2xl mb-2 block text-slate-600"></i>
+              暂无保存的考核档案记录
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      records.forEach(rec => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-800/50 transition';
+        tr.innerHTML = `
+          <td class="py-3.5 px-4 font-mono text-slate-400">${rec.evalDate || '-'}</td>
+          <td class="py-3.5 px-4 font-bold text-white">${rec.candidateName}</td>
+          <td class="py-3.5 px-4 text-brand-400 font-medium">${rec.roleName}</td>
+          <td class="py-3.5 px-4 font-mono font-bold text-amber-400">${rec.finalScore} 分</td>
+          <td class="py-3.5 px-4"><span class="px-2 py-0.5 rounded-full text-[11px] bg-brand-500/20 text-brand-300 border border-brand-500/30">${rec.finalGrade}</span></td>
+          <td class="py-3.5 px-4 text-slate-400">${rec.examinerName}</td>
+          <td class="py-3.5 px-4 text-right space-x-2">
+            <button onclick="loadRecord('${rec.id}')" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200">
+              调阅详情
+            </button>
+            <button onclick="deleteRecord('${rec.id}')" class="px-2.5 py-1 rounded bg-rose-950/40 hover:bg-rose-900/60 text-rose-300">
+              删除
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function loadRecord(recId) {
+      const records = getStoredRecords();
+      const rec = records.find(r => r.id === recId);
+      if (!rec) return;
+
+      document.getElementById('candidateName').value = rec.candidateName;
+      document.getElementById('examinerName').value = rec.examinerName;
+      document.getElementById('evalDate').value = rec.evalDate;
+      document.getElementById('targetLevel').value = rec.targetLevel;
+      document.getElementById('examinerOverallComment').value = rec.comment || '';
+      document.getElementById('finalGradeSelect').value = rec.finalGrade;
+
+      currentRoleKey = rec.roleKey;
+      candidateAnswers = rec.candidateAnswers || { multipleChoice: {}, shortAnswer: {}, practical: {}, aesthetic: {} };
+      examinerScores = rec.examinerScores || { multipleChoice: {}, shortAnswer: {}, practical: {}, aesthetic: {} };
+
+      // 切换为考官评审视角
+      setUserMode('examiner');
+      switchView('evaluation');
+      showToast(`已调阅【${rec.candidateName}】的评审档案`);
+    }
+
+    function deleteRecord(recId) {
+      let records = getStoredRecords();
+      records = records.filter(r => r.id !== recId);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+      renderRecordsTable();
+      updateRecordCountBadge();
+      showToast("该档案记录已删除");
+    }
+
+    function clearAllRecords() {
+      if (confirm("确定要清空所有橙视考核档案吗？")) {
+        localStorage.removeItem(STORAGE_KEY);
+        renderRecordsTable();
+        updateRecordCountBadge();
+        showToast("档案已清空");
+      }
+    }
+
+    function exportAllRecordsJSON() {
+      const records = getStoredRecords();
+      const blob = new Blob([JSON.stringify(records, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `橙视考核档案库_${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toastMsg').innerText = msg;
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      setTimeout(() => {
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 2500);
+    }
+  </script>
+</body>
+</html>
